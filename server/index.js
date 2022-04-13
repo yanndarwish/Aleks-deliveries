@@ -122,6 +122,7 @@ app.post('/deliveries', async (req, res) => {
             delivery_drop_place,
             delivery_distance
         } = req.body;
+        console.log('request')
         const result = await pool.query('INSERT INTO deliveries (delivery_id, delivery_driver, delivery_vehicle, delivery_pick_up_year, delivery_pick_up_month, delivery_pick_up_day, delivery_pick_up_time, delivery_pick_up_place, delivery_drop_year, delivery_drop_month, delivery_drop_day, delivery_drop_time, delivery_drop_place, delivery_distance) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [delivery_id, delivery_driver, delivery_vehicle, delivery_pick_up_year, delivery_pick_up_month, delivery_pick_up_day, delivery_pick_up_time, delivery_pick_up_place, delivery_drop_year, delivery_drop_month, delivery_drop_day, delivery_drop_time, delivery_drop_place, delivery_distance]);
         res.json(result.rows);
     } catch (err) {

@@ -90,20 +90,27 @@ const Home = () => {
 
         //get the longest array
         const longestArray = pickUpPlace.length > dropOffPlace.length ? pickUpPlace.length : dropOffPlace.length;
+        console.log(longestArray)
+        if (editMode) {
+            deleteDelivery()
+        }
         for (let i = 0; i < longestArray; i++) {
+
+            console.log('trying')
+            let pickUpPlaceValue
+            let dropOffPlaceValue
+            if (pickUpPlace[i] !== undefined) {
+            pickUpPlaceValue = pickUpPlace[i].value;
+            } else if (pickUpPlace[i] === undefined) {
+                pickUpPlaceValue = ''
+            }
+            if (dropOffPlace[i] !== undefined) {
+                dropOffPlaceValue = dropOffPlace[i].value;
+            } else if (dropOffPlace[i] === undefined){
+                dropOffPlaceValue = ''
+            }
+
             try {
-                let pickUpPlaceValue
-                let dropOffPlaceValue
-                if (pickUpPlace[i] !== undefined) {
-                pickUpPlaceValue = pickUpPlace[i].value;
-                } else if (pickUpPlace[i] === undefined) {
-                    pickUpPlaceValue = ''
-                }
-                if (dropOffPlace[i] !== undefined) {
-                    dropOffPlaceValue = dropOffPlace[i].value;
-                } else if (dropOffPlace[i] === undefined){
-                    dropOffPlaceValue = ''
-                }
                 const body = {
                 delivery_id: parseInt(actualId),
                 delivery_vehicle: vehicle,
@@ -374,16 +381,17 @@ const Home = () => {
     const editing = () => {
         setEditedDelivery([])
         const editInput = document.getElementById('edit-delivery-input')
-        setActualId(editInput.value)
-        // get delivery that matches the id
-        deliveries.filter(delivery => {
-            if (delivery.delivery_id === parseInt(editInput.value)){
-                console.log(delivery)
-                setEditedDelivery(editedDelivery => [... editedDelivery, delivery])
-            }
-        })
-        setEditMode(true)
-
+        if (editInput.value !== '') {
+            setActualId(editInput.value)
+            // get delivery that matches the id
+            deliveries.filter(delivery => {
+                if (delivery.delivery_id === parseInt(editInput.value)){
+                    console.log(delivery)
+                    setEditedDelivery(editedDelivery => [... editedDelivery, delivery])
+                }
+            })
+            setEditMode(true)
+        }
     }
 
     const editValues = () => {
@@ -401,26 +409,69 @@ const Home = () => {
             let dropDay = editedDelivery[0].delivery_drop_day
             if (editedDelivery[0].delivery_pick_up_month < 10) {
                 pickUpMonth = 0 + editedDelivery[0].delivery_pick_up_month.toString()
-                console.log(pickUpMonth)
             }
             if (editedDelivery[0].delivery_pick_up_day < 10) {
                 pickUpDay = 0 + editedDelivery[0].delivery_pick_up_day.toString()
-                console.log(pickUpDay)
             }
             if (editedDelivery[0].delivery_drop_month < 10) {
                 dropMonth = 0 + editedDelivery[0].delivery_drop_month.toString()
-                console.log(dropMonth)
             }
             if (editedDelivery[0].delivery_drop_day < 10) {
                 dropDay = 0 + editedDelivery[0].delivery_drop_day.toString()
-                console.log(dropDay)
             }
             document.getElementById('pick-up-date').value = editedDelivery[0].delivery_pick_up_year + '-' + pickUpMonth + '-' + pickUpDay
             document.getElementById('pick-up-time').value = editedDelivery[0].delivery_pick_up_time
+
+            // pick up places
+            let pickUpPlaces = document.getElementsByClassName('pick-up-place')
+            if (editedDelivery.length > 1) {
+                for (let i = 0; i < editedDelivery.length - 1 ; i++) {
+                    if (!editedDelivery[i + 1].delivery_pick_up_place === false) {
+                        addPickUp()
+                        for (let j = 0; j < editedDelivery.length; j++) {
+                            pickUpPlaces[j].value = editedDelivery[j].delivery_pick_up_place
+                        }
+                    } else {
+                        pickUpPlaces[0].value = editedDelivery[0].delivery_pick_up_place
+                    }
+                }
+            } else {
+                pickUpPlaces[0].value = editedDelivery[0].delivery_pick_up_place
+            }
+            // drop off places
+            let dropPlaces = document.getElementsByClassName('drop-off-place')
+            if (editedDelivery.length > 1) {
+                for (let i = 0; i < editedDelivery.length - 1 ; i++) {
+                    if (!editedDelivery[i + 1].delivery_drop_place === false) {
+                        addDropOff()
+                        for (let j = 0; j < editedDelivery.length; j++) {
+                            dropPlaces[j].value = editedDelivery[j].delivery_drop_place
+                        }
+                    } else {
+                        dropPlaces[0].value = editedDelivery[0].delivery_drop_place
+                    }
+                }
+            } else {
+                dropPlaces[0].value = editedDelivery[0].delivery_drop_place
+            }
             // document.getElementsByClassName('pick-up-place') = editedDelivery[0].delivery_
             document.getElementById('drop-off-date').value = editedDelivery[0].delivery_drop_year + '-' + dropMonth + '-' + dropDay
             document.getElementById('drop-off-time').value = editedDelivery[0].delivery_drop_time
             // document.getElementsByClassName('drop-off-place') = editedDelivery.delivery_
+    }
+
+    const deleteDelivery = async() => {
+        try {
+            console.log(actualId)
+            const response = await fetch(`http://${ip}:5000/deliveries/${actualId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+                })
+        } catch (err) {
+            console.error(err.message)
+        }
     }
 
     useEffect(() => {
@@ -571,7 +622,7 @@ const Home = () => {
                                     </div>
                                     <div className="">
                                         <h3>Êtes-vous sûr de vouloir confirmer cette livraison ?</h3>    
-                                        <button type="submit" className="btn-in-modal" onClick={setDelivery}>Confirmer livraison</button>
+                                        <button type="button" className="btn-in-modal" onClick={setDelivery}>Confirmer livraison</button>
                                     </div>
                                 </div>
                             </div>
