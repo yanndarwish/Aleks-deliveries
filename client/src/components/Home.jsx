@@ -12,6 +12,9 @@ const Home = () => {
     const [longitudes, setLongitudes] = useState([]);
     const [distance, setDistance] = useState(0);
     const [duration, setDuration] = useState(0);
+    const [vehicles, setVehicles] = useState([])
+    const [editedDelivery, setEditedDelivery] =useState([])
+    const [editMode, setEditMode] = useState(false)
 
     const getDeliveries = async () => {
         try {
@@ -45,6 +48,16 @@ const Home = () => {
         }
     }
 
+    const getVehicles = async () => {
+        try {
+            const response = await fetch(`http://${ip}:5000/vehicles`);
+            const data = await response.json();
+            setVehicles(data)
+        } catch (err) {
+            console.error(err.message)
+        }
+    }
+
     const getClients = async () => {
         try {
             const response = await fetch(`http://${ip}:5000/clients`);
@@ -56,6 +69,8 @@ const Home = () => {
     }
 
     const setDelivery = async () => {
+
+        let vehicle = document.querySelector('.vehicle-input:checked').id
         let name = document.getElementById('name').value;
         let pickUpDate = document.getElementById('pick-up-date').value;
         let pickUpTime = document.getElementById('pick-up-time').value;
@@ -91,6 +106,7 @@ const Home = () => {
                 }
                 const body = {
                 delivery_id: parseInt(actualId),
+                delivery_vehicle: vehicle,
                 delivery_driver: name,
                 delivery_pick_up_year: parseInt(pYear),
                 delivery_pick_up_month: parseInt(pMonth),
@@ -131,10 +147,13 @@ const Home = () => {
         setActualId(actualId + 1);
     }
 
-    console.log(clients)
 
     const openModal = (e) => {
-        document.getElementById(e.target.nextSibling.dataset.dismiss).classList.add('show-modal');
+        if (e.target.dataset.action === 'distance') {
+            getInfo()
+        }
+        const modal = document.querySelector(`.${e.target.dataset.toggle}`)
+        modal.classList.add('show-modal')
     }
 
     const closeModal = (e) => {
@@ -165,7 +184,7 @@ const Home = () => {
 
     const addClient = async () => {
         try {
-            const newClientName = document.getElementById('new-client-name').value.toUpperCase();
+            const newClientName = document.getElementById('new-client-name').value.toUpperCase().split(' ').join('_');
             const newClientAddress = document.getElementById('new-client-address').value;
             const newClientPostal = document.getElementById('new-client-postal').value;
             const newClientCity = document.getElementById('new-client-city').value.charAt(0).toUpperCase() + document.getElementById('new-client-city').value.slice(1);
@@ -196,17 +215,22 @@ const Home = () => {
         const pickUpsContainer = document.getElementById('pick-ups-container');
         //create new pick-up-place input
         const input = document.createElement('input');
+        const label = document.createElement('label');
 
         input.setAttribute('type', 'text');
-        input.setAttribute('class', 'pick-up-place');
+        input.setAttribute('class', 'pick-up-place input_home');
         input.setAttribute('placeholder', 'Pick up place');
         input.setAttribute('name', 'pick-up-place');
-        input.setAttribute('list', 'addresses');
+        input.setAttribute('list', 'clients');
         input.setAttribute('required', 'true');
+
+        label.setAttribute('for', 'pick-up-place');
+        label.setAttribute('class', 'label_home');
+        pickUpsContainer.appendChild(label);
 
         pickUpsContainer.appendChild(input);
 
-        pickUpsContainer.innerHTML += `<datalist id="addresses">
+        pickUpsContainer.innerHTML += `<datalist id="clients">
         ${clients.map((client) => {
             return <option key={client.client_id} value={client.client_name + ' ' + client.client_address + ' ' + client.client_postal_code + ' ' + client.client_city + ' ' + client.client_country}>{client.client_name + ' ' + client.client_address + ' ' + client.client_postal_code + ' ' + client.client_city + ' ' + client.client_country}</option>
             })}
@@ -217,14 +241,21 @@ const Home = () => {
         const dropOffsContainer = document.getElementById('drop-offs-container');
         //create new pick-up-place input
         const input = document.createElement('input');
+        const label = document.createElement('label');
 
         input.setAttribute('type', 'text');
-        input.setAttribute('class', 'drop-off-place');
+        input.setAttribute('class', 'drop-off-place input_home');
         input.setAttribute('placeholder', 'Drop off place');
         input.setAttribute('name', 'drop-off-place');
         input.setAttribute('list', 'addresses');
         input.setAttribute('required', 'true');
+
+        label.setAttribute('for', 'drop-off-place');
+        label.setAttribute('class', 'label_home');
+
+        dropOffsContainer.appendChild(label);
         dropOffsContainer.appendChild(input);
+
 
         dropOffsContainer.innerHTML += `<datalist id="addresses">
         ${clients.map((client) => {
@@ -252,6 +283,7 @@ const Home = () => {
             }
             for (let i = 0; i < addressesArr.length; i++) {
                 setTimeout(async () => {
+                    console.log(addressesArr[i])
                     const response = await fetch(`https://forward-reverse-geocoding.p.rapidapi.com/v1/search?q=${addressesArr[i]}&accept-language=en&polygon_threshold=0.0`, {
                         "method": "GET",
                         "headers": {
@@ -337,11 +369,64 @@ const Home = () => {
         } 
         
     }
+
+    // EDIT MODE
+    const editing = () => {
+        setEditedDelivery([])
+        const editInput = document.getElementById('edit-delivery-input')
+        setActualId(editInput.value)
+        // get delivery that matches the id
+        deliveries.filter(delivery => {
+            if (delivery.delivery_id === parseInt(editInput.value)){
+                console.log(delivery)
+                setEditedDelivery(editedDelivery => [... editedDelivery, delivery])
+            }
+        })
+        setEditMode(true)
+
+    }
+
+    const editValues = () => {
+
+            if (editedDelivery[0].delivery_vehicle !== null) {
+                let vehicle = editedDelivery[0].delivery_vehicle 
+                document.getElementById(vehicle).checked = true
+            }
+            document.getElementById('name').value  = editedDelivery[0].delivery_driver
     
+            // reformat dates
+            let pickUpMonth = editedDelivery[0].delivery_pick_up_month
+            let pickUpDay = editedDelivery[0].delivery_pick_up_day
+            let dropMonth = editedDelivery[0].delivery_drop_month
+            let dropDay = editedDelivery[0].delivery_drop_day
+            if (editedDelivery[0].delivery_pick_up_month < 10) {
+                pickUpMonth = 0 + editedDelivery[0].delivery_pick_up_month.toString()
+                console.log(pickUpMonth)
+            }
+            if (editedDelivery[0].delivery_pick_up_day < 10) {
+                pickUpDay = 0 + editedDelivery[0].delivery_pick_up_day.toString()
+                console.log(pickUpDay)
+            }
+            if (editedDelivery[0].delivery_drop_month < 10) {
+                dropMonth = 0 + editedDelivery[0].delivery_drop_month.toString()
+                console.log(dropMonth)
+            }
+            if (editedDelivery[0].delivery_drop_day < 10) {
+                dropDay = 0 + editedDelivery[0].delivery_drop_day.toString()
+                console.log(dropDay)
+            }
+            document.getElementById('pick-up-date').value = editedDelivery[0].delivery_pick_up_year + '-' + pickUpMonth + '-' + pickUpDay
+            document.getElementById('pick-up-time').value = editedDelivery[0].delivery_pick_up_time
+            // document.getElementsByClassName('pick-up-place') = editedDelivery[0].delivery_
+            document.getElementById('drop-off-date').value = editedDelivery[0].delivery_drop_year + '-' + dropMonth + '-' + dropDay
+            document.getElementById('drop-off-time').value = editedDelivery[0].delivery_drop_time
+            // document.getElementsByClassName('drop-off-place') = editedDelivery.delivery_
+    }
 
     useEffect(() => {
         getDrivers();
         getClients();
+        getVehicles();
         getDeliveries();
     }, []);
 
@@ -355,108 +440,143 @@ const Home = () => {
         }
     }, [ready])
 
+    useEffect(()=> {
+        if(editMode) {
+            console.log(editedDelivery)
+            editValues()
+        }
+    }, [editMode])
+
 
     return (
         <div className="container">
-            <div className="title-container">
-                <h1>Accueil</h1>
-                <h2>Livraison n° {actualId}</h2>
-            </div>
-            <div className="btn-container">
-                <div className="add-driver-container">
-                    <button className="btn" onClick={(e) => openModal(e)}>Ajouter Chauffeur</button>
-                    <div id="modal-driver" className="overlay" data-dismiss="modal-driver" onClick={(e) => closeModal(e)}>
-                        <div className="modal p-2">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h2>Ajouter Chauffeur</h2>
-                                    <span className="close" data-dismiss="modal-driver" onClick={(e) => closeModal(e)}>&times;</span>
-                                </div>
-                                <div className="modal-body">
-                                    <form>
-                                        <label htmlFor="new-driver-name">Nom Chauffeur</label>
-                                        <input type="text" id="new-driver-name" name="new-driver-name" required/><br />
-                                        <button type="submit" className="btn" onClick={addDriver}>Ajouter Chauffeur</button>
-                                    </form>
+            <div className="container_top">
+                <div className="titre">
+                    <h1>Accueil</h1>
+                    <h2>Livraison n° {actualId}</h2>
+                </div>
+                <div className="btn_modal">
+                        <button className="btn_modal_pos" data-toggle="modal-driver" onClick={(e) => openModal(e)}>Ajouter Chauffeur</button>
+                        <div id="modal-driver" className="modal modal-driver" data-dismiss="modal-driver" data-toggle="modal-driver" onClick={(e) => closeModal(e)}>
+                            <div className="modal-dialog modal-driver-dialog">
+                                <div className="">
+                                    <div className="">
+                                        <h2>Ajouter Chauffeur</h2>
+                                        <span className="close-btn" data-dismiss="modal-driver" onClick={(e) => closeModal(e)}>&times;</span>
+                                    </div>
+                                    <div className="">
+                                        <form>
+                                            <label className="label_home" htmlFor="new-driver-name">Nom Chauffeur</label>
+                                            <input type="text" id="new-driver-name" name="new-driver-name" required/><br />
+                                            <button type="submit" className="btn-in-modal" onClick={addDriver}>Ajouter Chauffeur</button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div className="add-client-container">
-                    <button className="btn" onClick={(e) => openModal(e)}>Ajouter Client</button>
-                    <div id="modal-client" className="overlay" data-dismiss="modal-client" onClick={(e) => closeModal(e)}>
-                        <div className="modal p-2">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h2>Ajouter Client</h2>
-                                    <span className="close" data-dismiss="modal-client" onClick={(e) => closeModal(e)}>&times;</span>
-                                </div>
-                                <div className="modal-body">
-                                    <form>
-                                        <label htmlFor="new-client-name">Nom Client</label>
-                                        <input required type="text" id="new-client-name" name="new-client-name" /><br />
-                                        <label htmlFor="new-client-address">Adresse Client</label>
-                                        <input required type="text" id="new-client-address" name="new-client-address" /><br />
-                                        <label htmlFor="new-client-postal">Code Postal Client</label>
-                                        <input required type="text" id="new-client-postal" name="new-client-postal" /><br />
-                                        <label htmlFor="new-client-city">Ville Client</label>
-                                        <input required type="text" id="new-client-city" name="new-client-city" /><br />
-                                        <label htmlFor="new-client-country">Code Pays Client</label>
-                                        <input required type="text" maxLength="3"id="new-client-country" name="new-client-country" /><br />
-                                        <button type="submit" className="btn" onClick={addClient}>Ajouter Client</button>
-                                    </form>
+                        <button className="btn_modal_pos" data-toggle="modal-client" onClick={(e) => openModal(e)}>Ajouter Client</button>
+                        <div id="modal-client" className="modal modal-client" data-dismiss="modal-client" onClick={(e) => closeModal(e)}>
+                            <div className="modal-dialog modal-client-dialog">
+                                <div className="">
+                                    <div className="">
+                                        <h2>Client</h2>
+                                        <span className="close-btn" data-dismiss="modal-client" onClick={(e) => closeModal(e)}>&times;</span>
+                                    </div>
+                                    <div className="modal-body">
+                                        <form>
+                                            <label className="label_home" htmlFor="new-client-name">Nom Client</label>
+                                            <input className="input_home" required type="text" id="new-client-name" name="new-client-name" /><br />
+                                            <label className="label_home" htmlFor="new-client-address">Adresse Client</label>
+                                            <input className="input_home" required type="text" id="new-client-address" name="new-client-address" /><br />
+                                            <label className="label_home" htmlFor="new-client-postal">Code Postal Client</label>
+                                            <input className="input_home" required type="text" id="new-client-postal" name="new-client-postal" /><br />
+                                            <label className="label_home" htmlFor="new-client-city">Ville Client</label>
+                                            <input className="input_home" required type="text" id="new-client-city" name="new-client-city" /><br />
+                                            <label className="label_home" htmlFor="new-client-country">Code Pays Client</label>
+                                            <input className="input_home" required type="text" maxLength="3"id="new-client-country" name="new-client-country" /><br />
+                                            <button type="submit" className="btn-in-modal" onClick={addClient}>Ajouter Client</button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                    </div>
+                    <div className="flex">
+                        <input id="edit-delivery-input" type="number"/>
+                        <button type="button" className="btn" onClick={() => editing()}>Editer</button>
                     </div>
                 </div>
             </div>
-            <div className="content-container">
-                <div className="title-container">
-                    <h2>Nouvelle Livraison</h2>
+            <div className="container_bot">
+                <div className="">
+                    <h2>Livraison</h2>
                 </div>
-                <div className="form-container">
+                <div className="">
                     <form>
-                        <label htmlFor="name">Chauffeur</label>
-                        <select name="name" id="name">
+                        <div className="btn-container flex">
+                            {vehicles.map(vehicle => {
+                                return (
+                                    <div key={vehicle.vehicle_id}>
+                                        <input className="vehicle-input" id={vehicle.vehicle_name} type="radio" name="vehicle"/>
+                                        <label htmlFor={vehicle.vehicle_name}>{vehicle.vehicle_name}</label>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                        <label className="label_home" htmlFor="name">Chauffeur :</label>
+                        <select className="select-option" name="name" id="name">
                             <option value="">--Choisissez une option--</option>
                             {drivers.map((driver) => {
                                 return <option key={driver.driver_id} value={driver.driver_name}>{driver.driver_name}</option>
                             })}
                         </select><br />
-                        <label htmlFor="pick-up-date">Date d'enlèvement</label>
-                        <input required type="date" id="pick-up-date" name="pick-up-date" /><br />
-                        <label htmlFor="pick-up-time">Heure d'enlèvement</label>
-                        <input id="pick-up-time" type="time"></input><br />
-                        <label htmlFor="pick-up-place">Adresse d'enlèvement</label>
-                        <input required type="text" list="clients" id="pick-up-place" className="pick-up-place"/><br />
+                        <label className="label_home" htmlFor="pick-up-date">Date d'enlèvement :</label>
+                        <input className="input_home" required type="date" id="pick-up-date" name="pick-up-date" /><br />
+                        <label className="label_home" htmlFor="pick-up-time">Heure d'enlèvement :</label>
+                        <input className="input_home" id="pick-up-time" type="time"></input><br />
+                        <label className="label_home" htmlFor="pick-up-place">Adresse d'enlèvement :</label>
+                        <input className="input_home pick-up-place" required type="text" list="clients" id="pick-up-place"/><br />
                             <datalist id="clients">
                                 {clients.map((client) => {
                                 return <option key={client.client_id} value={client.client_name + ' ' + client.client_address + ' ' + client.client_postal_code + ' ' + client.client_city + ' ' + client.client_country}>{client.client_name + ' ' + client.client_address + ' ' + client.client_postal_code + ' ' + client.client_city + ' ' + client.client_country}</option>
 
                                 })}
-                            </datalist><br />
-                        <button type="button" onClick={() => addPickUp()}>Ajouter enlèvement</button>
-                        <div id="pick-ups-container">
+                            </datalist>
+                            <div id="pick-ups-container">
                         </div>
-                        <label htmlFor="drop-off-date">Date de livraison</label>
-                        <input required type="date" id="drop-off-date" name="drop-off-date" /><br />
-                        <label htmlFor="drop-off-time">Heure de livraison</label>
-                        <input id="drop-off-time" type="time"></input><br />
-                        <label htmlFor="drop-off-place">Adresse de livraison</label>
-                        <input required type="text" list="addresses" id="drop-off-place" className="drop-off-place"/>
-                        <datalist id="addresses">
+                        <button type="button" className='btn' onClick={() => addPickUp()}>Enlévement Suplémentaire</button><br />
+                        
+                        <label className="label_home" htmlFor="drop-off-date">Date de livraison :</label>
+                        <input className="input_home" required type="date" id="drop-off-date" name="drop-off-date" /><br />
+                        <label className="label_home" htmlFor="drop-off-time">Heure de livraison :</label>
+                        <input className="input_home" id="drop-off-time" type="time"></input><br />
+                        <label className="label_home" htmlFor="drop-off-place">Adresse de livraison :</label>
+                        <input className="input_home drop-off-place" required type="text" list="clients" id="drop-off-place"/>
+                        <datalist id="clients">
                         {clients.map((client) => {
                                 return <option key={client.client_id} value={client.client_name + ' ' + client.client_address + ' ' + client.client_postal_code + ' ' + client.client_city + ' ' + client.client_country}>{client.client_name + ' ' + client.client_address + ' ' + client.client_postal_code + ' ' + client.client_city + ' ' + client.client_country}</option>
                             })}
-                        </datalist><br />
-                        
-                        <button type="button" onClick={() => addDropOff()}>Ajouter livraison</button>
+                        </datalist>
                         <div id="drop-offs-container">
                         </div>
-                        <button type="button" id="calculate-btn" onClick={() => getInfo()}>Calculer Distance</button>
-                        <button  type="button" id="submit-btn" className="btn" onClick={setDelivery}>Envoyer</button>
+                        <button type="button" className="btn" onClick={() => addDropOff()}>Livraison Suplémentaire</button><br /><br />
+                        
+                        <div>
+                        <button  type="button" id="submit-btn" className="btn btn_submit" data-toggle="modal-delivery" data-action="distance" onClick={(e) => openModal(e)}>Confirmer Livraison</button>
+                        <div id="modal-delivery" className="modal modal-delivery" data-dismiss="modal-delivery" data-toggle="modal-delivery" onClick={(e) => closeModal(e)}>
+                            <div className="modal-dialog modal-delivery-dialog">
+                                <div className="">
+                                    <div className="">
+                                        <h2>Confirmer Livraison</h2>
+                                        <span className="close-btn" data-dismiss="modal-delivery" onClick={(e) => closeModal(e)}>&times;</span>
+                                    </div>
+                                    <div className="">
+                                        <h3>Êtes-vous sûr de vouloir confirmer cette livraison ?</h3>    
+                                        <button type="submit" className="btn-in-modal" onClick={setDelivery}>Confirmer livraison</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
                     </form>
                 </div>
                 <div id="results-container">

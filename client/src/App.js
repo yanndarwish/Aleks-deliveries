@@ -2,22 +2,34 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import Home from './components/Home';
 import Admin from './components/Admin'
+import Clients from './components/Clients'
 
 function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isHome, setIsHome] = useState(true);
+  const [isClients,setIsClients] = useState(false);
 
   const handleAdmin = () => {
     if (!isAdmin) {
       setIsAdmin(!isAdmin);
-      setIsHome(!isHome);
+      setIsHome(false);
+      setIsClients(false)
     }
   }
 
   const handleHome = () => {
     if (!isHome) {
-      setIsAdmin(!isAdmin);
+      setIsAdmin(false);
       setIsHome(!isHome);
+      setIsClients(false)
+    }
+  }
+
+  const handleClient = () => {
+    if (!isClients) {
+      setIsClients(!isClients);
+      setIsAdmin(false);
+      setIsHome(false);
     }
   }
 
@@ -43,20 +55,24 @@ const openNav = () => {
 
   return (
     <div className="App">
-    <a className="skip-to-content" href="#main">Skip to content</a>
-      <div className="home">
-      <header className="primary-header flex">
-      <button className="mobile-nav-toggle" aria-controls="primary-navigation" onClick={() => openNav()}><span aria-expanded="false">Menu</span></button>
-        <nav>
-          <ul id="primary-navigation" data-visible="false" className="primary-navigation underline-indicators flex">
-            <li><a className="uppercase ff-sans-cond text-white letter-spacing-2" href="#" onClick={handleHome}>Home</a></li>
-            <li><a className="uppercase ff-sans-cond text-white letter-spacing-2" href="#" onClick={handleAdmin}>Admin</a></li>
+      <div className="home flex">
+      <header className="">
+
+        <nav className="nav">
+          <div className="nav-header flex">
+            <div className="img"></div>
+          </div>
+          <ul id="" data-visible="false" className="menu">
+            <li><a className="menu_li flex" href="#" onClick={handleHome}><i className="fas fa-house-user"></i>Accueil</a></li>
+            <li><a className="menu_li flex" href="#" onClick={handleAdmin}><i className="fas fa-database"></i>Admin</a></li>
+            <li><a className="menu_li flex" href="#" onClick={handleClient}><i className="fas fa-database"></i>Clients</a></li>
           </ul>
         </nav>
       </header>
-        <main>
+        <main className="main">
           {isHome ? <Home /> : null}
           {isAdmin ? <Admin /> : null}
+          {isClients ? <Clients /> : null}
         </main>
       </div>
     </div>

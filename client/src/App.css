@@ -1,151 +1,304 @@
-* {
+ * {
   box-sizing: border-box;
 }
 
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* Classe Rapide */
+.flex {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  gap: var(--gap, 1rem);
+}
+
+
+/* APP.JS */
+
+.home {
+  --gap:0;
+}
+
+/* Nav */
+
+.nav {
+  background-color: #AAB2BD;
+  width: 20vw;
+  height: 100vh;
+  border: solid 2px black;
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+  font-family: Optima, sans-serif;
+  box-shadow: 2px 2px 2px black;
+
+}
+
+.menu {
+  font-size: 2rem;
+  list-style-type: none;
+}
+
+.menu_li {
+  text-decoration: none;
+  color: black;
+  margin-top: 2rem;
+}
+
+.nav a:hover {
+  color: white;
+}
+
+.nav .fas {
+  margin-right: 0.7rem;
+  width: 2rem;
+  display: flex;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* modal overlay */
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
+.nav-header {
   width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 10;
-  display: none;
-}
-
-/* show modal */
-.show-modal {
-  display: flex;
-}
-
-/* modal centered */
-.modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: fit-content;
-  height: fit-content;
-  transform: translate(-50%, -50%);
-  background-color: #fefefe;
-  z-index: 11;
-  display: flex;
-}
-
-.modal-header {
-  display:flex;
-  justify-content: space-between;
+  height: 15%;
+  justify-content: center;
   align-items: center;
-}
-
-.modal form {
   display: flex;
-  flex-direction: column;
-  text-align: left;
-}
-.p-2 {
-  padding:2rem;
 }
 
-main {
-  padding: 2rem;
-  width:100%;
-}
-
-.main-container {
-  position:relative;
-  display:flex;
+.img {
+  background-image: url(./image/logossback.png);
+  width: 85%;
   height: 100%;
+  background-position: center;
+  border-top-right-radius: 20px;
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
-.container {
-  text-align: left;
+
+/* Main */
+
+.main {
+  width: 100%;
 }
 
-.btn-container {
-  display: flex;
-  justify-content: space-between;
-  margin: 2rem 0;
+
+
+/* Home Page */
+/* Modale d'ajout */
+
+.modal {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100vw;
+  height:100vh;
+  overflow-y: scroll;
+  background-color: rgba(0, 0, 0, 0.6);
 }
 
-.form-container form {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height:500px;
-}
-
-.form-container form input, .form-container form select {
-  width:100%;
-}
-
-nav {
-  min-width: 20%;
-  background-color: #c7c7c9;
-  color: white;
-  padding: 1rem;
-}
-
-.table-container {
+.modal-dialog {
+  position: relative;
+  background-color: white;
+  height:fit-content;
+  border-radius:1rem;
   padding:1rem;
 }
 
-table {
-  min-width: 100%;
-  text-align: left;
-  margin: 0 auto;
-  border-collapse: collapse;
-  border: 2px solid rgb(0, 0, 0);
+.close-btn {
+  position:absolute;
+  top:1rem;
+  right:1rem;
+  font-size:2rem;
+  display:flex;
+  justify-content:center;
+  align-items: center;
+  font-weight: bold;
+  width:2rem;
+  height:2rem;
+
+  border-radius: 0px;
+
+}
+/* 
+.modal-driver {
+
+} */
+
+/* .modal-client {
+
+} */
+
+.show-modal {
+  display: flex;
+  z-index:50
 }
 
-thead {
-  background-color: #c7c7c9;
-  border: 2px solid rgb(0, 0, 0);
+
+
+/* Button */
+
+.btn-in-modal {
+  box-shadow: 3px 3px 3px black;
+  border-radius: 15px;
+  width: 40%;
+  height: 30px;
+  text-align: center;
+  font-family: Optima, sans-serif;
 }
 
-tr:nth-child(even) {
-  background-color: #f2f2f2;
+.btn {
+  box-shadow: 3px 3px 3px black;
+  border-radius: 15px;
+  width: 20%;
+  height: 30px;
+  text-align: center;
+  font-family: Optima, sans-serif;
 }
 
-td, th {
-  padding: 0 1rem;
+.btn:hover {
+  background-color: grey;
 }
+
+.btn_submit {
+  float: right;
+}
+
+
+/* Label et input*/
+.btn-container {
+  --gap:2rem;
+}
+input[type=radio] {
+  display:none;
+}
+
+input[type=radio] + label {
+  background-color: white;
+  padding:0.3rem 1rem;
+  border-radius: 20px;
+}
+
+input[type=radio] + label:hover {
+  background-color: rgba(0, 0, 0, .1);
+}
+
+input[type=radio]:checked + label {
+  background-color: blue;
+}
+
+.label_home {
+
+  font-size: 1.3em;
+  display: inline-block;
+  width: 220px;
+  margin: 10px;
+  text-decoration: underline;
+
+}
+
+.input_home {
+  display: inline-block;
+  width: 300px;
+}
+
+.label_admin {
+
+  font-size: 1.3em;
+  display: inline-block;
+  width: 220px;
+  margin: 10px;
+  text-decoration: underline;
+
+}
+
+.input_admin {
+  display: inline-block;
+  width: 182px;
+}
+
+.select-option {
+  width: 300px;
+}
+
+
+/* Conteneur principale */
+
+.container-admin {
+  width: 100%;
+  font-family: Optima, sans-serif;
+  background-color: #AAB2BD;
+  width: 98%;
+  border-radius: 20px;
+  border: 2px solid black;
+  box-shadow: 2px 2px 2px black;
+  margin-left: 1rem;
+  padding-left: 1rem;
+}
+
+.container {
+  width: 100%;
+  height: 100vh;
+  font-family: Optima, sans-serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+h2 {
+  text-decoration: underline;
+}
+
+
+/* Conteneur Haut */
+
+.container_top {
+  display: flex;
+  background-color: #AAB2BD;
+  width: 98%;
+  height: 20%;
+  border-radius: 20px;
+  border: 2px solid black;
+  box-shadow: 2px 2px 2px black;
+  margin-left: 1rem;
+  padding-left: 1rem;
+
+}
+
+.titre {
+  width: 50%;
+}
+
+.btn_modal {
+  display: flex;
+  width: 100%;
+  gap: 1rem;
+  padding: 1rem;
+  justify-content: right;
+}
+
+.btn_modal_pos {
+  box-shadow: 3px 3px 3px black;
+  border-radius: 15px;
+  width: 30%;
+  height: 35px;
+  font-family: Optima, sans-serif;
+}
+
+.btn_modal_pos:hover {
+  background-color: grey;
+}
+
+/* Conteneur Bas */
+
+.container_bot {
+  background-color: #AAB2BD;
+  width: 98%;
+  height: 80%;
+  border-radius: 20px;
+  border: 2px solid black;
+  box-shadow: 2px 2px 2px black;
+  margin-left: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+
+
